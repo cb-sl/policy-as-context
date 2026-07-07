@@ -1,0 +1,43 @@
+policy_version: v2-hardened
+description: Hardened routing policy. Tenant isolation, DDoS mitigation, secret redaction, TLS enforced end to end.
+
+authentication:
+  incoming_traffic:
+    required: true
+    method: mutual_tls          # stronger than bearer token alone
+    reject_unauthenticated: true
+    mutual_tls: true
+    token_fallback: bearer_token
+
+routing:
+  basis: tenant_id
+  default_cluster: null         # no shared fallback; unknown tenants are rejected
+  reject_unknown_tenant: true
+  tenant_assignment:
+    - tenant: tenant-a
+      cluster: cluster-a-isolated
+    - tenant: tenant-b
+      cluster: cluster-b-isolated
+
+secure_routing:
+  require_tls_upstream: true    # traffic to clusters must be TLS
+  allowed_protocols: [https]
+  min_tls_version: "1.2"        # CONFIRM: 1.2 or 1.3 as your floor
+
+ddos_mitigation:
+  enabled: true
+  rate_limit_per_ip:
+    requests: 100               # CONFIRM: threshold per window
+    window_seconds: 60
+  connection_limit_per_ip: 20   # CONFIRM
+  block_duration_seconds: 300   # CONFIRM
+  syn_flood_protection: true
+
+secret_redaction:
+  enabled: true                 # secrets in generated config are replaced with references
+  redact_pattern: "${SECRET_REF}"
+  applies_to: [upstream_credentials, tls_private_keys, tokens]
+
+auditing:
+  record_generation: true
+  fields: [policy_version, policy_hash, tenant, cluster, rules_applied, redactions_made, timestamp]

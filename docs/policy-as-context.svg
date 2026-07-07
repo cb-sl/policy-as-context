@@ -1,0 +1,123 @@
+<svg width="1240" height="860" viewBox="0 0 1240 860" xmlns="http://www.w3.org/2000/svg" font-family="'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 34px; font-weight: 700; fill: #0f172a; }
+      .subtitle { font-size: 16px; fill: #475569; }
+      .lane-label { font-size: 13px; font-weight: 700; letter-spacing: 1.5px; }
+      .card-title { font-size: 17px; font-weight: 700; fill: #0f172a; }
+      .mono { font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace; }
+      .k { font-size: 13px; fill: #334155; }
+      .kb { font-size: 13px; font-weight: 700; fill: #0f172a; }
+      .hash { font-size: 11px; fill: #64748b; }
+      .pill-t { font-size: 12px; font-weight: 700; }
+      .foot { font-size: 15px; fill: #0f172a; }
+      .footdim { font-size: 15px; fill: #64748b; }
+      .small { font-size: 12px; fill: #64748b; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="860" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <text x="60" y="62" class="title">Policy as Context</text>
+  <text x="60" y="90" class="subtitle">Same agent. Same traffic. The only thing that changes is the policy loaded into the context window.</text>
+
+  <!-- INPUT block -->
+  <rect x="60" y="130" width="240" height="150" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="80" y="160" class="lane-label" fill="#64748b">FIXED INPUT</text>
+  <text x="80" y="188" class="card-title">Traffic scenario</text>
+  <text x="80" y="216" class="k mono">tenant-a</text>
+  <text x="80" y="238" class="k mono">tenant-b</text>
+  <text x="80" y="260" class="k mono">unknown-tenant</text>
+
+  <!-- connectors from input to two lanes -->
+  <path d="M300 190 C 340 190, 340 250, 380 250" fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <path d="M300 220 C 340 220, 340 560, 380 560" fill="none" stroke="#94a3b8" stroke-width="2"/>
+  <circle cx="380" cy="250" r="3" fill="#94a3b8"/>
+  <circle cx="380" cy="560" r="3" fill="#94a3b8"/>
+
+  <!-- ============ LANE 1: v1-permissive ============ -->
+  <text x="380" y="150" class="lane-label" fill="#b45309">CONTEXT A</text>
+
+  <!-- policy card v1 -->
+  <rect x="380" y="165" width="270" height="185" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <rect x="380" y="165" width="6" height="185" rx="3" fill="#f59e0b"/>
+  <text x="404" y="195" class="card-title">v1-permissive</text>
+  <text x="404" y="217" class="k">bearer token auth</text>
+  <text x="404" y="238" class="k">all tenants to cluster-shared</text>
+  <text x="404" y="259" class="k">plaintext upstream allowed</text>
+  <text x="404" y="280" class="k">no DDoS limits</text>
+  <text x="404" y="301" class="k">secrets written as literals</text>
+  <text x="404" y="333" class="hash mono">sha256 e2eec36ae8f0ac52...</text>
+
+  <!-- agent arrow -->
+  <path d="M650 257 H 720" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowA)"/>
+  <rect x="672" y="240" width="18" height="18" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="681" y="230" class="small" text-anchor="middle">agent</text>
+
+  <!-- output card v1 -->
+  <rect x="730" y="165" width="290" height="185" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="752" y="193" class="lane-label" fill="#64748b">OUTPUT CONFIG</text>
+  <text x="752" y="222" class="k mono">tenant-a  &#8594; cluster-shared</text>
+  <text x="752" y="244" class="k mono">tenant-b  &#8594; cluster-shared</text>
+  <text x="752" y="266" class="k mono">unknown   &#8594; cluster-shared</text>
+  <text x="752" y="292" class="k mono">upstream_creds: svc-cred-...</text>
+  <text x="752" y="314" class="k mono" fill="#b45309">http, tls not_required</text>
+
+  <!-- audit chip v1 -->
+  <rect x="1030" y="200" width="150" height="115" rx="10" fill="#0f172a"/>
+  <text x="1048" y="226" class="lane-label" fill="#94a3b8">AUDIT</text>
+  <text x="1048" y="250" class="pill-t" fill="#fbbf24">0 redactions</text>
+  <text x="1048" y="272" class="pill-t" fill="#f8fafc">0 rejected</text>
+  <text x="1048" y="296" class="small" fill="#94a3b8">3 rules applied</text>
+
+  <!-- ============ LANE 2: v2-hardened ============ -->
+  <text x="380" y="460" class="lane-label" fill="#0f766e">CONTEXT B</text>
+
+  <!-- policy card v2 -->
+  <rect x="380" y="475" width="270" height="205" rx="10" fill="#f0fdfa" stroke="#14b8a6" stroke-width="1.5"/>
+  <rect x="380" y="475" width="6" height="205" rx="3" fill="#14b8a6"/>
+  <text x="404" y="505" class="card-title">v2-hardened</text>
+  <text x="404" y="527" class="k">mutual TLS auth</text>
+  <text x="404" y="548" class="k">tenant-a, tenant-b to isolated clusters</text>
+  <text x="404" y="569" class="k">TLS enforced upstream (min 1.2)</text>
+  <text x="404" y="590" class="k">DDoS rate limits written in</text>
+  <text x="404" y="611" class="k">secrets redacted to ${SECRET_REF}</text>
+  <text x="404" y="632" class="k">unknown tenant rejected</text>
+  <text x="404" y="664" class="hash mono">sha256 3295945594ad20ba...</text>
+
+  <!-- agent arrow -->
+  <path d="M650 567 H 720" fill="none" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowA)"/>
+  <rect x="672" y="558" width="18" height="18" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+  <text x="681" y="548" class="small" text-anchor="middle">agent</text>
+
+  <!-- output card v2 -->
+  <rect x="730" y="475" width="290" height="205" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="752" y="503" class="lane-label" fill="#64748b">OUTPUT CONFIG</text>
+  <text x="752" y="532" class="k mono">tenant-a  &#8594; cluster-a-isolated</text>
+  <text x="752" y="554" class="k mono">tenant-b  &#8594; cluster-b-isolated</text>
+  <text x="752" y="576" class="k mono" fill="#be123c">unknown   &#8594; REJECTED</text>
+  <text x="752" y="602" class="k mono" fill="#0f766e">upstream_creds: ${SECRET_REF}</text>
+  <text x="752" y="624" class="k mono" fill="#0f766e">https, tls required, ddos on</text>
+
+  <!-- audit chip v2 -->
+  <rect x="1030" y="500" width="150" height="140" rx="10" fill="#0f172a"/>
+  <text x="1048" y="526" class="lane-label" fill="#94a3b8">AUDIT</text>
+  <text x="1048" y="550" class="pill-t" fill="#2dd4bf">2 redactions</text>
+  <text x="1048" y="572" class="pill-t" fill="#fca5a5">1 rejected</text>
+  <text x="1048" y="596" class="small" fill="#94a3b8">6 rules applied</text>
+  <text x="1048" y="620" class="small" fill="#94a3b8">hash pinned</text>
+
+  <!-- arrow marker -->
+  <defs>
+    <marker id="arrowA" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0 L9 4.5 L0 9 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <!-- Footer thesis -->
+  <line x1="60" y1="740" x2="1180" y2="740" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="60" y="778" class="foot"><tspan font-weight="700">What the agent is shown is policy.</tspan> <tspan class="footdim">The context shapes the config it generates.</tspan></text>
+  <text x="60" y="806" class="foot"><tspan font-weight="700">What the agent was shown is audit.</tspan> <tspan class="footdim">The policy hash proves which policy was in the window at generation time.</tspan></text>
+  <text x="60" y="838" class="small">Enforcement is simulated. Same input, different output, because the policy context changed.</text>
+</svg>

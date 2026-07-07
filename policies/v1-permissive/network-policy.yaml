@@ -1,0 +1,30 @@
+policy_version: v1-permissive
+description: Baseline routing policy. Minimal restrictions. Not suitable for production exposure.
+
+authentication:
+  incoming_traffic:
+    required: true
+    method: bearer_token        # simple token check only
+    reject_unauthenticated: true
+    mutual_tls: false
+
+routing:
+  basis: tenant_id              # route each tenant to its assigned cluster
+  default_cluster: cluster-shared
+  tenant_assignment:
+    - tenant: "*"
+      cluster: cluster-shared   # all tenants share one cluster in baseline
+
+secure_routing:
+  require_tls_upstream: false   # traffic to clusters may be plaintext
+  allowed_protocols: [http, https]
+
+ddos_mitigation:
+  enabled: false
+
+secret_redaction:
+  enabled: false                # secrets may appear in generated config
+
+auditing:
+  record_generation: true
+  fields: [policy_version, tenant, cluster, timestamp]

@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+
+# Generated artifacts are written per run. Keep the directories, not the output.
+configs/**/routing.yaml
+audit/*.json
