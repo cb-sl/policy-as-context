@@ -45,6 +45,14 @@ Enforcement is simulated. The agent reads policy context and produces a config p
 
 The policies are declarative, cloud-agnostic, and tenancy-agnostic. Nothing in them assumes a specific provider or a single-tenant versus multi-tenant deployment. The numeric thresholds in the hardened policy (TLS floor, rate limits, block durations) are illustrative defaults, not production recommendations.
 
+## Visualization
+
+![Policy as Context: same agent, same traffic, two policy versions, two outputs, two audit records](docs/policy-as-context.png)
+
+One fixed input runs against two policy versions. The output differs because the
+context differed, and each audit record pins the result to a sha256 of the exact
+policy the agent was shown. Source: [docs/policy-as-context.svg](docs/policy-as-context.svg).
+
 ## Who this is for
 
 - Platform teams deploying config-generating agents who need those agents to respect network policy.
@@ -63,6 +71,15 @@ This runs the traffic scenario against both policy versions and writes:
 - audit records for both runs, showing the policy version, its hash, the rules that shaped the output, and the resulting config
 
 The difference between the two outputs, and the two audit records, is the demonstration.
+
+### Running it in GitHub
+
+The demo needs a Python runtime, so GitHub does not execute it just by hosting the
+repo. A GitHub Actions workflow ([.github/workflows/demo.yml](.github/workflows/demo.yml))
+runs it in the cloud instead. It triggers on push and on manual dispatch (the Run
+workflow button under the Actions tab). The full side by side output appears in the
+job log, and the generated configs and audit records are uploaded as a downloadable
+artifact. Locally, `python demo.py` does the same thing.
 
 ## Repo structure
 
