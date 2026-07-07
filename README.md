@@ -1,5 +1,7 @@
 # Policy as Context
 
+[![Run Policy as Context demo](https://github.com/cb-sl/policy-as-context/actions/workflows/demo.yml/badge.svg)](https://github.com/cb-sl/policy-as-context/actions/workflows/demo.yml)
+
 A proof of concept demonstrating that an AI agent's context is its enforcement surface. The context an agent is given shapes what it produces, and a record of that context is what makes the output auditable.
 
 ## The problem
