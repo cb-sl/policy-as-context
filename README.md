@@ -77,9 +77,14 @@ The difference between the two outputs, and the two audit records, is the demons
 The demo needs a Python runtime, so GitHub does not execute it just by hosting the
 repo. A GitHub Actions workflow ([.github/workflows/demo.yml](.github/workflows/demo.yml))
 runs it in the cloud instead. It triggers on push and on manual dispatch (the Run
-workflow button under the Actions tab). The full side by side output appears in the
-job log, and the generated configs and audit records are uploaded as a downloadable
-artifact. Locally, `python demo.py` does the same thing.
+workflow button under the Actions tab).
+
+Every run produces a plain language report (`report.md`) that states what ran and
+why, which policy applied, what each audit record shows, and how to interpret the
+difference. In CI that report is rendered directly on the Actions run summary page,
+so a reader can tell at a glance what the run did without reading the raw log. The
+generated configs, audit records, and the report are also uploaded as a downloadable
+artifact. Locally, `python demo.py` writes the same `report.md` to the repo root.
 
 ## Repo structure
 

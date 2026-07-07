@@ -8,3 +8,4 @@ venv/
 # Generated artifacts are written per run. Keep the directories, not the output.
 configs/**/routing.yaml
 audit/*.json
+report.md

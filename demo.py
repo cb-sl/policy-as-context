@@ -16,6 +16,7 @@ import yaml
 
 from agent import PolicyAgent, load_policy_context
 from agent.policy_agent import TRAFFIC_SCENARIO
+from agent.report import build_markdown_report
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,6 +63,7 @@ def run_one(version: str, policy_path: str) -> dict:
         "config_path": config_path,
         "audit": result.audit,
         "audit_path": audit_path,
+        "audit_rel_path": os.path.relpath(audit_path, ROOT),
     }
 
 
@@ -109,6 +111,16 @@ def main() -> None:
     print()
     print("The output differed because the context differed. The audit records")
     print("prove which policy each run was shown, by hash, at generation time.")
+
+    # Write a human readable report that explains what ran, which policy applied,
+    # what the audit shows, and how to read it. In CI this is rendered on the
+    # GitHub Actions run summary page.
+    report = build_markdown_report(runs, TRAFFIC_SCENARIO)
+    report_path = os.path.join(ROOT, "report.md")
+    with open(report_path, "w", encoding="utf-8") as handle:
+        handle.write(report)
+    print()
+    print("Report written to {0}".format(os.path.relpath(report_path, ROOT)))
 
 
 if __name__ == "__main__":

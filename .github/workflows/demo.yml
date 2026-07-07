@@ -25,11 +25,15 @@ jobs:
       - name: Run the demo
         run: python demo.py
 
-      - name: Upload generated configs and audit records
+      - name: Publish the run report to the job summary
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload generated configs, audit records, and report
         uses: actions/upload-artifact@v4
         with:
           name: policy-as-context-output
           path: |
+            report.md
             configs/**/routing.yaml
             audit/*.json
           if-no-files-found: error
