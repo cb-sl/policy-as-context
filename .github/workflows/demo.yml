@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run the demo
-        run: python demo.py
+        run: python demo.py --adversarial
 
       - name: Publish the run report to the job summary
         run: cat report.md >> "$GITHUB_STEP_SUMMARY"
@@ -34,6 +34,6 @@ jobs:
           name: policy-as-context-output
           path: |
             report.md
-            configs/**/routing.yaml
+            configs/**/*.yaml
             audit/*.json
           if-no-files-found: error

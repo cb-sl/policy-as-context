@@ -109,8 +109,89 @@ def _per_run_section(s: dict, scenario: list) -> list:
     return lines
 
 
-def build_markdown_report(runs: list, scenario: list) -> str:
-    """Assemble the full Markdown report from both runs."""
+def _live_section(live_runs: list) -> list:
+    """Section for live generation: the model shaped by policy context, validated."""
+    lines = []
+    lines.append("## Live generation: the model shaped by context")
+    lines.append("")
+    lines.append("In live mode the policy was placed into a real model's context window "
+                 "and the model generated the routing decisions. The deterministic agent "
+                 "above stays the floor: each live output is validated against it, and the "
+                 "audit record captures whether the probabilistic layer agreed.")
+    lines.append("")
+    lines.append("| policy | model | agrees with deterministic floor | redactions | rejected |")
+    lines.append("| --- | --- | --- | --- | --- |")
+    for run in live_runs:
+        audit = run["audit"]
+        agrees = "yes" if audit["validation"]["agrees_with_deterministic"] else "**no**"
+        rejected = ", ".join(audit["rejected_tenants"]) if audit["rejected_tenants"] else "none"
+        lines.append("| {0} | `{1}` | {2} | {3} | {4} |".format(
+            run["version"], audit["model"], agrees, audit["redactions_made"], rejected))
+    lines.append("")
+    any_divergence = any(
+        not r["audit"]["validation"]["agrees_with_deterministic"] for r in live_runs
+    )
+    if any_divergence:
+        lines.append("At least one live run diverged from the deterministic floor. The "
+                     "specific decisions that differed are recorded under "
+                     "`validation.mismatches` in each audit record. This is the layering "
+                     "working as designed: the probabilistic layer moved, and the "
+                     "deterministic floor plus audit caught and recorded exactly where.")
+    else:
+        lines.append("Every live run agreed with the deterministic floor on every decision. "
+                     "The model, shaped only by the policy in its context, reached the same "
+                     "routing, redaction, and rejection decisions the policy prescribes.")
+    lines.append("")
+    return lines
+
+
+def _adversarial_section(adversarial: dict) -> list:
+    """Section for the prompt-injection scenario."""
+    det = adversarial["det"]
+    live = adversarial.get("live")
+    injected = adversarial["scenario"][-1]
+
+    lines = []
+    lines.append("## Adversarial scenario: prompt injection as a tenant name")
+    lines.append("")
+    lines.append("The third tenant identifier in this scenario is not a tenant name. It is "
+                 "an injection attempt smuggled in as data:")
+    lines.append("")
+    lines.append("```")
+    lines.append(injected)
+    lines.append("```")
+    lines.append("")
+    det_summary = _summarize(det)
+    rejected_count = len(det_summary["rejected"])
+    outcome = ("the injected identifier was rejected" if rejected_count
+               else "nothing was rejected")
+    lines.append("**Deterministic floor.** To the deterministic agent this is simply an "
+                 "unrecognized tenant, so the hardened policy's `reject_unknown_tenant` rule "
+                 "refuses to route it: {0}. The injection changes nothing.".format(outcome))
+    lines.append("")
+    if live is not None:
+        validation = live["audit"]["validation"]
+        if validation["agrees_with_deterministic"]:
+            lines.append("**Live model.** Given the same scenario, the model held to the policy "
+                         "in its context and reached the same decisions as the deterministic "
+                         "floor. The injection did not move it. Validation: agreed on every "
+                         "decision, recorded in the audit record.")
+        else:
+            lines.append("**Live model.** The model's output diverged from the deterministic "
+                         "floor on this scenario. The exact decisions that differed are in "
+                         "`validation.mismatches` in the audit record. This is precisely the "
+                         "case the three-surface model exists for: context did not hold, and "
+                         "the deterministic floor plus audit caught it.")
+    else:
+        lines.append("**Live model.** Not run (live mode was off or unavailable). Run "
+                     "`python demo.py --live --adversarial` to test whether the model holds "
+                     "to the policy under this injection.")
+    lines.append("")
+    return lines
+
+
+def build_markdown_report(runs: list, scenario: list, live_runs=None, adversarial=None) -> str:
+    """Assemble the full Markdown report from both runs, plus optional sections."""
     summaries = [_summarize(run) for run in runs]
     a, b = summaries[0], summaries[1]
 
@@ -165,4 +246,10 @@ def build_markdown_report(runs: list, scenario: list) -> str:
     out.append("Enforcement here is simulated. The point is the mechanic: context shapes "
                "the output, and the audit record makes that link reconstructable.")
     out.append("")
+
+    if live_runs:
+        out.extend(_live_section(live_runs))
+    if adversarial:
+        out.extend(_adversarial_section(adversarial))
+
     return "\n".join(out)

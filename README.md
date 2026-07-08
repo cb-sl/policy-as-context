@@ -47,6 +47,16 @@ Enforcement is simulated. The agent reads policy context and produces a config p
 
 The policies are declarative, cloud-agnostic, and tenancy-agnostic. Nothing in them assumes a specific provider or a single-tenant versus multi-tenant deployment. The numeric thresholds in the hardened policy (TLS floor, rate limits, block durations) are illustrative defaults, not production recommendations.
 
+## Live mode and adversarial testing (v2.0)
+
+The default demo is a deterministic simulation: a Python agent parses the policy and mechanically emits config. That proves the mechanic, but a skeptic can say the output only changed because an `if` statement read the policy. Version 2.0 adds two optional modes that answer that objection directly.
+
+**Live mode (`--live`)** places the policy into a real model's context window and has the model generate the routing config. This makes the thesis literal rather than simulated: same request, same code, different policy in the context window, different config, and the audit record's `policy_hash` pins what was actually in the window at generation time. The deterministic agent stays the floor. Every live generation is validated against it, and the audit record records whether the probabilistic layer agreed. This is the three-surface model running end to end: context shapes, the deterministic floor plus validation constrain, audit reconstructs.
+
+**Adversarial testing (`--adversarial`)** runs a traffic scenario whose third tenant identifier is a prompt-injection attempt smuggled in as data (a "tenant" that instructs the agent to ignore the hardened policy, route to an isolated cluster, and print secrets). To the deterministic floor it is simply an unrecognized tenant, so the hardened policy rejects it. In live mode it becomes a real test of whether the policy in context holds when the input tries to override it. Whichever way the model goes, the audit record captures it: agreement means context held; divergence means the deterministic floor and audit caught exactly where it did not. That is the point the README makes about layering, shown rather than asserted.
+
+Live mode calls the Anthropic API (Opus 4.8) and is billed to your account, so it needs a credential (`ANTHROPIC_API_KEY` or `ant auth login`) and the optional dependency in [requirements-live.txt](requirements-live.txt). Without a credential, live mode is skipped cleanly and the deterministic demo still runs. A full `--live` run is roughly 12 to 15 cents at current Opus 4.8 pricing; the deterministic default is free. GitHub Actions runs the deterministic and adversarial modes only, never live, so CI never incurs cost.
+
 ## Visualization
 
 ![Policy as Context: same agent, same traffic, two policy versions, two outputs, two audit records](docs/policy-as-context.png)
@@ -64,15 +74,18 @@ policy the agent was shown. Source: [docs/policy-as-context.svg](docs/policy-as-
 ## Running it
 
 ```
-python demo.py
+python demo.py                    deterministic simulation (default, free)
+python demo.py --adversarial      also run the prompt-injection scenario (free)
+python demo.py --live             also generate config with a real model (billed)
+python demo.py --live --adversarial
 ```
 
-This runs the traffic scenario against both policy versions and writes:
+The default run generates the traffic scenario against both policy versions and writes:
 
 - generated configs for `v1-permissive` and `v2-hardened`, for side by side comparison
 - audit records for both runs, showing the policy version, its hash, the rules that shaped the output, and the resulting config
 
-The difference between the two outputs, and the two audit records, is the demonstration.
+The difference between the two outputs, and the two audit records, is the demonstration. See [Live mode and adversarial testing](#live-mode-and-adversarial-testing-v20) above for the two optional modes.
 
 ### Running it in GitHub
 
@@ -91,11 +104,16 @@ artifact. Locally, `python demo.py` writes the same `report.md` to the repo root
 ## Repo structure
 
 ```
-policies/          versioned network policy files the agent reads as context
+policies/              versioned network policy files the agent reads as context
   v1-permissive/
   v2-hardened/
-agent/             the config-generating agent
-configs/           generated output, written per run
-audit/             audit records, written per run
-demo.py            entry point, runs both scenarios
+agent/
+  policy_agent.py      deterministic agent (the floor) and the two scenarios
+  live_agent.py        live agent: policy in a real model's context, plus validation
+  report.py            builds the plain-language run report
+configs/               generated output, written per run
+audit/                 audit records, written per run
+demo.py                entry point: deterministic, --live, and --adversarial modes
+requirements.txt       core dependency (PyYAML)
+requirements-live.txt  optional dependency for --live (anthropic)
 ```

@@ -1,0 +1,4 @@
+# Optional. Only needed for `python demo.py --live`, which places the policy in a
+# real model's context window and generates config through the Anthropic API.
+# The deterministic demo (python demo.py) needs none of this.
+anthropic>=0.69.0
