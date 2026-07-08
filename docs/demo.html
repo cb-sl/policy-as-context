@@ -1,0 +1,204 @@
+<style>
+  :root {
+    --bg: #f8fafc; --ink: #0f172a; --muted: #64748b; --line: #cbd5e1;
+    --amber: #f59e0b; --amber-bg: #fffbeb; --teal: #14b8a6; --teal-bg: #f0fdfa;
+    --red: #be123c; --chip: #0f172a;
+    --mono: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+    --sans: 'Helvetica Neue', Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: var(--sans); }
+  #stage {
+    position: relative; width: 900px; height: 520px; margin: 0 auto;
+    background: var(--bg); overflow: hidden;
+  }
+  .t { position: absolute; }
+  .title { left: 40px; top: 26px; font-size: 26px; font-weight: 700; color: var(--ink); }
+  .subtitle { left: 40px; top: 60px; font-size: 14px; color: var(--muted); }
+
+  .card { border-radius: 12px; background: #fff; border: 1.5px solid var(--line); }
+  .label { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; color: var(--muted); }
+  .cardtitle { font-size: 16px; font-weight: 700; color: var(--ink); }
+  .k { font-size: 13px; color: #334155; }
+  .mono { font-family: var(--mono); }
+  .hash { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+  /* INPUT */
+  #input { left: 40px; top: 100px; width: 200px; height: 158px; padding: 16px 18px; }
+
+  /* POLICY (context window) */
+  .policy { left: 274px; top: 100px; width: 258px; height: 200px; padding: 16px 18px; }
+  .policy .bar { position: absolute; left: 0; top: 0; width: 6px; height: 100%; border-radius: 6px 0 0 6px; }
+  #policyHard { background: var(--teal-bg); border-color: var(--teal); }
+  #policyHard .bar { background: var(--teal); }
+  #policyPerm { background: var(--amber-bg); border-color: var(--amber); }
+  #policyPerm .bar { background: var(--amber); }
+  .ctxtag { position: absolute; top: -22px; left: 0; font-size: 11px; font-weight: 700; letter-spacing: 1.4px; }
+
+  /* agent */
+  #agent { left: 545px; top: 168px; width: 34px; height: 34px; border-radius: 8px;
+           background: #fff; border: 1.5px solid var(--line); }
+  #agentlbl { left: 540px; top: 146px; width: 44px; text-align: center; font-size: 11px; color: var(--muted); }
+
+  /* OUTPUT */
+  #output { left: 596px; top: 100px; width: 264px; height: 200px; padding: 14px 16px; }
+  .row { font-size: 12.5px; font-family: var(--mono); color: #334155; margin: 3px 0; }
+  .row.rej { color: var(--red); }
+  .row.good { color: #0f766e; }
+  .row.warn { color: #b45309; }
+
+  /* AUDIT */
+  #audit { left: 596px; top: 322px; width: 264px; height: 120px; padding: 14px 16px;
+           background: var(--chip); border: none; color: #f8fafc; }
+  #audit .label { color: #94a3b8; }
+  .pill { font-size: 13px; font-weight: 700; margin: 3px 0; }
+
+  .caption { left: 40px; top: 470px; width: 820px; font-size: 15px; color: var(--ink); }
+  .caption b { font-weight: 700; }
+  .caption span { color: var(--muted); }
+
+  /* arrows */
+  .arrow { position: absolute; height: 2px; background: #94a3b8; top: 184px; }
+  #a1 { left: 244px; width: 26px; }
+  #a2 { left: 536px; width: 6px; }
+  #a3 { left: 583px; width: 9px; }
+  .arrow::after { content: ''; position: absolute; right: -1px; top: -3px;
+    border-left: 7px solid #94a3b8; border-top: 4px solid transparent; border-bottom: 4px solid transparent; }
+</style>
+
+<div id="stage">
+  <div class="t title">Policy as Context</div>
+  <div class="t subtitle" id="sub">A config-generating agent in production. The policy in its context window is the control surface.</div>
+
+  <div class="t card" id="input">
+    <div class="label">INCOMING REQUEST</div>
+    <div class="cardtitle" style="margin-top:8px;">Traffic scenario</div>
+    <div class="k mono" style="margin-top:10px;">tenant-a</div>
+    <div class="k mono">tenant-b</div>
+    <div class="k mono">unknown-tenant</div>
+  </div>
+
+  <div class="t arrow" id="a1"></div>
+  <div class="t arrow" id="a2"></div>
+  <div class="t arrow" id="a3"></div>
+  <div class="t" id="agentlbl">agent</div>
+  <div class="t" id="agent"></div>
+
+  <!-- POLICY: hardened -->
+  <div class="t card policy" id="policyHard">
+    <div class="bar"></div>
+    <div class="ctxtag" style="color:#0f766e">CONTEXT LOADED</div>
+    <div class="cardtitle">v2-hardened</div>
+    <div class="k" style="margin-top:8px;">mutual TLS auth</div>
+    <div class="k">isolated clusters per tenant</div>
+    <div class="k">TLS enforced upstream</div>
+    <div class="k">DDoS limits + secret redaction</div>
+    <div class="k">unknown tenant rejected</div>
+    <div class="hash" id="hashHard" style="margin-top:12px;">sha256 3295945594ad20ba...</div>
+  </div>
+
+  <!-- POLICY: permissive -->
+  <div class="t card policy" id="policyPerm">
+    <div class="bar"></div>
+    <div class="ctxtag" style="color:#b45309">CONTEXT SWAPPED</div>
+    <div class="cardtitle">v1-permissive</div>
+    <div class="k" style="margin-top:8px;">bearer token auth</div>
+    <div class="k">all tenants share one cluster</div>
+    <div class="k">plaintext upstream allowed</div>
+    <div class="k">no DDoS limits</div>
+    <div class="k">secrets written as literals</div>
+    <div class="hash" id="hashPerm" style="margin-top:12px;">sha256 e2eec36ae8f0ac52...</div>
+  </div>
+
+  <!-- OUTPUT: hardened -->
+  <div class="t card" id="output">
+    <div class="label" id="outlabel">GENERATED CONFIG</div>
+    <div id="outHard" style="margin-top:8px;">
+      <div class="row" id="oh0">tenant-a &#8594; cluster-a-isolated</div>
+      <div class="row" id="oh1">tenant-b &#8594; cluster-b-isolated</div>
+      <div class="row rej" id="oh2">unknown &#8594; REJECTED</div>
+      <div class="row good" id="oh3">upstream: ${SECRET_REF}</div>
+      <div class="row good" id="oh4">https, tls required, ddos on</div>
+    </div>
+    <div id="outPerm" style="margin-top:8px; position:absolute; top:38px; left:16px; right:16px;">
+      <div class="row" id="op0">tenant-a &#8594; cluster-shared</div>
+      <div class="row" id="op1">tenant-b &#8594; cluster-shared</div>
+      <div class="row" id="op2">unknown &#8594; cluster-shared</div>
+      <div class="row warn" id="op3">upstream: svc-cred-tenant-a-9f2c...</div>
+      <div class="row warn" id="op4">http, tls not required</div>
+    </div>
+  </div>
+
+  <!-- AUDIT -->
+  <div class="t card" id="audit">
+    <div class="label">AUDIT RECORD &#183; what it was shown, and what it did</div>
+    <div id="auditHard" style="margin-top:8px;">
+      <div class="pill" style="color:#2dd4bf">2 redactions &#183; 1 rejected</div>
+      <div class="pill" style="color:#f8fafc; font-weight:400; font-size:12px;">policy_hash pinned &#183; 6 rules applied</div>
+    </div>
+    <div id="auditPerm" style="margin-top:8px; position:absolute; top:38px; left:16px; right:16px;">
+      <div class="pill" style="color:#fbbf24">0 redactions &#183; 0 rejected</div>
+      <div class="pill" style="color:#f8fafc; font-weight:400; font-size:12px;">policy_hash pinned &#183; 3 rules applied</div>
+    </div>
+  </div>
+
+  <div class="t caption" id="cap"></div>
+</div>
+
+<script>
+  const FADE = 2;
+  const N_DEFAULT = 44;
+
+  // element id -> [appearFrame, disappearFrame|null]
+  const TL = {
+    title: [0, null], sub: [0, null], input: [2, null],
+    a1: [4, null], agentlbl: [6, null], agent: [6, null], a2: [6, null], a3: [12, null],
+    policyHard: [6, 30], hashHard: [10, 30],
+    oh0: [13, 30], oh1: [15, 30], oh2: [17, 30], oh3: [19, 30], oh4: [21, 30],
+    auditHard: [24, 30], outlabel: [12, null],
+    policyPerm: [33, null], hashPerm: [37, null],
+    op0: [34, null], op1: [35, null], op2: [36, null], op3: [38, null], op4: [39, null],
+    auditPerm: [40, null]
+  };
+
+  // caption text per frame range: [fromFrame, html]
+  const CAPS = [
+    [0,  '<b>The agent generates load-balancing config from a policy it is shown.</b>'],
+    [6,  '<b>What the agent is shown is policy.</b> <span>The policy in context shapes the config it writes.</span>'],
+    [24, '<b>What the agent was shown is audit.</b> <span>The policy hash pins which policy was in the window at generation time.</span>'],
+    [31, '<b>Same request. Same agent. Different policy in the context window.</b>'],
+    [40, '<b>Same input, different output,</b> <span>because the context changed. The audit proves which policy each run was shown.</span>']
+  ];
+
+  function ramp(i, appear, disappear) {
+    const up = Math.min(1, Math.max(0, (i - appear) / FADE));
+    const down = (disappear == null) ? 1 : Math.min(1, Math.max(0, (disappear - i) / FADE + 1));
+    return Math.min(up, down);
+  }
+
+  function capFor(i) {
+    let html = '';
+    for (const [f, h] of CAPS) { if (i >= f) html = h; }
+    return html;
+  }
+
+  function renderFrame(i) {
+    for (const id in TL) {
+      const el = document.getElementById(id);
+      if (el) el.style.opacity = ramp(i, TL[id][0], TL[id][1]);
+    }
+    document.getElementById('cap').innerHTML = capFor(i);
+  }
+
+  // Static capture mode: #f=INDEX&n=TOTAL renders exactly one frame.
+  const hash = new URLSearchParams(location.hash.slice(1));
+  if (hash.has('f')) {
+    renderFrame(parseInt(hash.get('f'), 10));
+  } else {
+    // Interactive/auto-play loop for viewing in a browser.
+    let i = 0;
+    const N = N_DEFAULT;
+    renderFrame(0);
+    setInterval(() => { i = (i + 1) % N; renderFrame(i); }, 130);
+  }
+</script>

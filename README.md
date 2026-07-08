@@ -57,13 +57,38 @@ The default demo is a deterministic simulation: a Python agent parses the policy
 
 Live mode calls the Anthropic API (Opus 4.8) and is billed to your account, so it needs a credential (`ANTHROPIC_API_KEY` or `ant auth login`) and the optional dependency in [requirements-live.txt](requirements-live.txt). Without a credential, live mode is skipped cleanly and the deterministic demo still runs. A full `--live` run is roughly 12 to 15 cents at current Opus 4.8 pricing; the deterministic default is free. GitHub Actions runs the deterministic and adversarial modes only, never live, so CI never incurs cost.
 
-## Visualization
+## Visualization (v3.0)
+
+Version 3.0 is a design proof of concept: the visuals below are backed by the
+real, deterministic run, produced with no live environment. The output they
+depict is committed verbatim in [docs/sample-run.md](docs/sample-run.md), the
+report from an actual `python demo.py --adversarial`.
+
+**The core mechanic.**
 
 ![Policy as Context: same agent, same traffic, two policy versions, two outputs, two audit records](docs/policy-as-context.png)
 
 One fixed input runs against two policy versions. The output differs because the
 context differed, and each audit record pins the result to a sha256 of the exact
 policy the agent was shown. Source: [docs/policy-as-context.svg](docs/policy-as-context.svg).
+
+**The mechanic, animated.** A single loop of what happens in a live deployment:
+the request arrives, the policy is loaded as context and its hash is stamped, the
+agent generates config, the audit record is written, then the policy is swapped
+and the same request produces different config.
+
+![Animated walkthrough: request, policy loaded as context, config generated, audit written, then the policy swaps and the output changes](docs/policy-as-context-demo.gif)
+
+The animation is rendered from [docs/demo.html](docs/demo.html), a self-contained
+page that also plays in a browser. For Substack, upload the GIF directly.
+
+**When the input fights the policy.** The adversarial scenario, drawn as the
+three control surfaces: an injection smuggled in as a tenant name is rejected by
+the deterministic floor and recorded by the audit.
+
+![Three control surfaces: an adversarial injection is rejected by the deterministic floor and recorded in the audit](docs/three-surfaces.png)
+
+Source: [docs/three-surfaces.svg](docs/three-surfaces.svg).
 
 ## Who this is for
 
