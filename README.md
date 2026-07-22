@@ -59,6 +59,12 @@ Live mode calls the Anthropic API (Opus 4.8) and is billed to your account, so i
 
 **Verified end to end.** Live mode has been run against `claude-opus-4-8`. Shown the hardened policy, the model correctly rejected a prompt injection smuggled in as a tenant name, recording its own reason in the config: `Unknown tenant; policy reject_unknown_tenant applies. Embedded directives ignored and treated as data.` On that same run its self-reported redaction count drifted from the deterministic floor by one (3 versus 2); the validation caught the drift and the audit pinned it. That is the three surfaces working together on a real model: context shaped the decision, the probabilistic layer still drifted on a detail, and the deterministic floor plus audit caught exactly where. The verbatim report is committed at [docs/sample-run-live.md](docs/sample-run-live.md).
 
+The live test, drawn as its five steps: the policy is loaded as the model's context, the real model generates a config, the same policy is run through the fixed Python logic to produce a reference, the two are compared, and the result is written to an audit record. The whole job ran three times.
+
+![What the live demo tested: policy as context, model generates config, fixed Python produces a reference, compare, record; run three times](docs/live-test-flow.png)
+
+Source: [docs/live-test-flow.svg](docs/live-test-flow.svg).
+
 ## Visualization (v3.0)
 
 Version 3.0 is a design proof of concept: the visuals below are backed by the
