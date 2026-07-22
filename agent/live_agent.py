@@ -18,6 +18,7 @@ the caller falls back to the deterministic demo and nothing is billed.
 """
 
 import json
+import os
 import uuid
 from datetime import datetime, timezone
 
@@ -108,7 +109,12 @@ def _build_client():
             "'pip install -r requirements-live.txt' to enable --live."
         ) from exc
     try:
-        return anthropic.Anthropic()
+        # OAuth tokens (from `ant auth login`) require this beta header on the
+        # Messages API. Plain API keys do not, so it is added only for them.
+        headers = {}
+        if os.environ.get("ANTHROPIC_AUTH_TOKEN", "").startswith("sk-ant-oat"):
+            headers["anthropic-beta"] = "oauth-2025-04-20"
+        return anthropic.Anthropic(default_headers=headers) if headers else anthropic.Anthropic()
     except Exception as exc:  # surface any auth or config problem plainly
         raise LiveUnavailable(
             "Could not initialize the Anthropic client. Set ANTHROPIC_API_KEY, or "
